@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.votrepackage.hypixelpricetracker.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "refmap": "hypixel-price-tracker.refmap.json",
+  "mixins": [],
+  "client": [],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

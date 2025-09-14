@@ -10,11 +10,6 @@ public class HypixelPriceTracker implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        LOGGER.info("Initialisation de Hypixel Price Tracker");
-        
-        // Initialisation des services
-        PriceApiService.initialize();
-        
-        LOGGER.info("Hypixel Price Tracker initialisé avec succès!");
+        LOGGER.info("Hypixel Price Tracker - Mod chargé avec succès!");
     }
 }

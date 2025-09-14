@@ -1,23 +1,23 @@
 package com.votrepackage.hypixelpricetracker;
 
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class PriceTrackerScreen extends Screen {
-    private TextFieldWidget searchField;
+    private EditBox searchField;
     private List<PriceApiService.ItemPriceData> displayedItems;
     private int scrollOffset = 0;
     private static final int ITEMS_PER_PAGE = 10;
 
     public PriceTrackerScreen() {
-        super(Text.literal("Hypixel Price Tracker"));
+        super(Component.literal("Hypixel Price Tracker"));
         this.displayedItems = new ArrayList<>();
     }
 
@@ -26,20 +26,20 @@ public class PriceTrackerScreen extends Screen {
         super.init();
 
         // Champ de recherche
-        this.searchField = new TextFieldWidget(this.textRenderer, this.width / 2 - 100, 30, 200, 20, Text.literal("Rechercher..."));
-        this.searchField.setChangedListener(this::onSearchChanged);
-        this.addSelectableChild(this.searchField);
+        this.searchField = new EditBox(this.font, this.width / 2 - 100, 30, 200, 20, Component.literal("Rechercher..."));
+        this.searchField.setResponder(this::onSearchChanged);
+        this.addRenderableWidget(this.searchField);
 
         // Bouton de rafraîchissement
-        this.addDrawableChild(ButtonWidget.builder(Text.literal("Rafraîchir"), button -> {
+        this.addRenderableWidget(Button.builder(Component.literal("Rafraîchir"), button -> {
             PriceApiService.updatePrices();
             updateDisplayedItems();
-        }).dimensions(this.width / 2 + 110, 30, 80, 20).build());
+        }).bounds(this.width / 2 + 110, 30, 80, 20).build());
 
         // Bouton fermer
-        this.addDrawableChild(ButtonWidget.builder(Text.literal("Fermer"), button -> {
-            this.close();
-        }).dimensions(this.width / 2 - 40, this.height - 30, 80, 20).build());
+        this.addRenderableWidget(Button.builder(Component.literal("Fermer"), button -> {
+            this.onClose();
+        }).bounds(this.width / 2 - 40, this.height - 30, 80, 20).build());
 
         updateDisplayedItems();
     }
@@ -51,7 +51,7 @@ public class PriceTrackerScreen extends Screen {
 
     private void updateDisplayedItems() {
         displayedItems.clear();
-        String search = searchField != null ? searchField.getText().toLowerCase() : "";
+        String search = searchField != null ? searchField.getValue().toLowerCase() : "";
         
         Map<String, PriceApiService.ItemPriceData> allPrices = PriceApiService.getAllPrices();
         
@@ -63,22 +63,22 @@ public class PriceTrackerScreen extends Screen {
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        this.renderBackground(context, mouseX, mouseY, delta);
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
+        this.renderBackground(guiGraphics, mouseX, mouseY, delta);
 
         // Titre
-        context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 10, 0xFFFFFF);
+        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 10, 0xFFFFFF);
 
         // Champ de recherche
         if (searchField != null) {
-            searchField.render(context, mouseX, mouseY, delta);
+            searchField.render(guiGraphics, mouseX, mouseY, delta);
         }
 
         // En-têtes des colonnes
         int startY = 60;
-        context.drawTextWithShadow(this.textRenderer, "Item", 20, startY, 0xFFFFFF);
-        context.drawTextWithShadow(this.textRenderer, "Prix d'achat", this.width / 2 - 80, startY, 0x55FF55);
-        context.drawTextWithShadow(this.textRenderer, "Prix de vente", this.width / 2 + 20, startY, 0xFF5555);
+        guiGraphics.drawString(this.font, "Item", 20, startY, 0xFFFFFF);
+        guiGraphics.drawString(this.font, "Prix d'achat", this.width / 2 - 80, startY, 0x55FF55);
+        guiGraphics.drawString(this.font, "Prix de vente", this.width / 2 + 20, startY, 0xFF5555);
 
         // Liste des items
         int y = startY + 20;
@@ -89,13 +89,13 @@ public class PriceTrackerScreen extends Screen {
             
             // Nom de l'item
             String itemName = formatItemName(item.getItemId());
-            context.drawTextWithShadow(this.textRenderer, itemName, 20, y, 0xFFFFFF);
+            guiGraphics.drawString(this.font, itemName, 20, y, 0xFFFFFF);
             
             // Prix d'achat
-            context.drawTextWithShadow(this.textRenderer, item.getFormattedBuyPrice(), this.width / 2 - 80, y, 0x55FF55);
+            guiGraphics.drawString(this.font, item.getFormattedBuyPrice(), this.width / 2 - 80, y, 0x55FF55);
             
             // Prix de vente
-            context.drawTextWithShadow(this.textRenderer, item.getFormattedSellPrice(), this.width / 2 + 20, y, 0xFF5555);
+            guiGraphics.drawString(this.font, item.getFormattedSellPrice(), this.width / 2 + 20, y, 0xFF5555);
             
             y += 15;
         }
@@ -105,16 +105,16 @@ public class PriceTrackerScreen extends Screen {
             String scrollInfo = String.format("Page %d/%d", 
                 (scrollOffset / ITEMS_PER_PAGE) + 1, 
                 (displayedItems.size() - 1) / ITEMS_PER_PAGE + 1);
-            context.drawTextWithShadow(this.textRenderer, scrollInfo, 20, this.height - 50, 0xAAAAAA);
+            guiGraphics.drawString(this.font, scrollInfo, 20, this.height - 50, 0xAAAAAA);
         }
 
         // Status de la connexion
         String status = PriceApiService.isCacheValid() ? 
-            Text.literal("Connecté").formatted(Formatting.GREEN).getString() : 
-            Text.literal("Déconnecté").formatted(Formatting.RED).getString();
-        context.drawTextWithShadow(this.textRenderer, "Status: " + status, this.width - 120, this.height - 30, 0xFFFFFF);
+            Component.literal("Connecté").withStyle(ChatFormatting.GREEN).getString() : 
+            Component.literal("Déconnecté").withStyle(ChatFormatting.RED).getString();
+        guiGraphics.drawString(this.font, "Status: " + status, this.width - 120, this.height - 30, 0xFFFFFF);
 
-        super.render(context, mouseX, mouseY, delta);
+        super.render(guiGraphics, mouseX, mouseY, delta);
     }
 
     private String formatItemName(String itemId) {
@@ -134,7 +134,7 @@ public class PriceTrackerScreen extends Screen {
     }
 
     @Override
-    public boolean shouldPause() {
+    public boolean isPauseScreen() {
         return false;
     }
 }
